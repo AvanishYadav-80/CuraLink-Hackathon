@@ -13,10 +13,17 @@ const AI_ENGINE_URL = process.env.AI_ENGINE_URL || "http://localhost:8000";
 router.post("/new", async (req, res) => {
   try {
     const { disease, query, location, patientName } = req.body;
+    const userId = req.headers["x-user-id"];
+
+    if (!userId) {
+      return res.status(401).json({ error: "User identity required" });
+    }
+
     const conversationId = uuidv4();
 
     const conversation = new Conversation({
       conversationId,
+      userId,
       title: `${disease || "Medical Research"} — ${query || "Research Query"}`.substring(0, 80),
       userContext: { disease, query, location, patientName },
       messages: [],
@@ -41,6 +48,11 @@ router.post("/new", async (req, res) => {
  */
 router.post("/query", async (req, res) => {
   const { conversationId, disease, query, location, patientName } = req.body;
+  const userId = req.headers["x-user-id"];
+
+  if (!userId) {
+    return res.status(401).json({ error: "User identity required" });
+  }
 
   if (!disease || !query) {
     return res.status(400).json({ error: "disease and query are required" });
@@ -52,7 +64,7 @@ router.post("/query", async (req, res) => {
 
   try {
     if (conversationId) {
-      conversation = await Conversation.findOne({ conversationId });
+      conversation = await Conversation.findOne({ conversationId, userId });
       if (conversation) {
         history = conversation.messages.slice(-6).map((m) => ({
           role: m.role,
@@ -66,6 +78,7 @@ router.post("/query", async (req, res) => {
       const newId = conversationId || uuidv4();
       conversation = new Conversation({
         conversationId: newId,
+        userId,
         title: `${disease} — ${query}`.substring(0, 80),
         userContext: { disease, query, location, patientName },
         messages: [],
@@ -202,9 +215,11 @@ router.post("/query", async (req, res) => {
  * Retrieve conversation history
  */
 router.get("/history/:conversationId", async (req, res) => {
+  const userId = req.headers["x-user-id"];
   try {
     const conversation = await Conversation.findOne({
       conversationId: req.params.conversationId,
+      userId,
     });
 
     if (!conversation) {
@@ -232,8 +247,11 @@ router.get("/history/:conversationId", async (req, res) => {
  * List all conversations (for sidebar)
  */
 router.get("/conversations", async (req, res) => {
+  const userId = req.headers["x-user-id"];
+  if (!userId) return res.json({ success: true, conversations: [] });
+
   try {
-    const conversations = await Conversation.find({})
+    const conversations = await Conversation.find({ userId })
       .select("conversationId title userContext createdAt updatedAt")
       .sort({ updatedAt: -1 })
       .limit(20);
@@ -249,8 +267,9 @@ router.get("/conversations", async (req, res) => {
  * Delete a conversation
  */
 router.delete("/:conversationId", async (req, res) => {
+  const userId = req.headers["x-user-id"];
   try {
-    await Conversation.deleteOne({ conversationId: req.params.conversationId });
+    await Conversation.deleteOne({ conversationId: req.params.conversationId, userId });
     res.json({ success: true, message: "Conversation deleted" });
   } catch (error) {
     res.status(500).json({ error: error.message });

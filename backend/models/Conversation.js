@@ -68,6 +68,11 @@ const ConversationSchema = new mongoose.Schema(
       location: String,
       patientName: String,
     },
+    userId: {
+      type: String,
+      required: true,
+      index: true,
+    },
     messages: [MessageSchema],
   },
   {

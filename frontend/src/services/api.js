@@ -1,11 +1,15 @@
 import axios from "axios";
+import { getUserId } from "./auth";
 
 const API_BASE = import.meta.env.VITE_API_URL || "/api";
 
 const api = axios.create({
   baseURL: API_BASE,
   timeout: 30000,
-  headers: { "Content-Type": "application/json" },
+  headers: { 
+    "Content-Type": "application/json",
+    "x-user-id": getUserId(),
+  },
 });
 
 // ─────────────────────────────────────────────
@@ -44,7 +48,10 @@ export const streamChat = async (payload, callbacks = {}) => {
   try {
     const response = await fetch(`${API_BASE}/chat/query`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "x-user-id": getUserId(),
+      },
       body: JSON.stringify(payload),
     });
 
