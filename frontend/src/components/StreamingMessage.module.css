@@ -1,0 +1,121 @@
+.wrapper {
+  display: flex;
+  gap: 0.875rem;
+  align-items: flex-start;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+  animation: pulse-glow 2s infinite;
+  box-shadow: 0 4px 12px rgba(79, 142, 247, 0.3);
+}
+
+.content {
+  flex: 1;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: 1.25rem 1.5rem;
+  backdrop-filter: blur(12px);
+  min-height: 60px;
+}
+
+.statusBar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.typingDots {
+  display: flex;
+  gap: 4px;
+}
+
+.typingDots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  animation: typing-dot 1.4s ease-in-out infinite;
+}
+
+.typingDots span:nth-child(2) { animation-delay: 0.2s; }
+.typingDots span:nth-child(3) { animation-delay: 0.4s; }
+
+.statusText {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Streaming markdown */
+.markdownWrapper {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  position: relative;
+}
+
+.markdownWrapper h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 1rem 0 0.5rem;
+  padding-bottom: 0.375rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.markdownWrapper h2:first-child { margin-top: 0; }
+
+.markdownWrapper h3 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-primary-light);
+  margin: 0.75rem 0 0.375rem;
+}
+
+.markdownWrapper p {
+  margin: 0.375rem 0;
+}
+
+.markdownWrapper strong {
+  color: var(--text-primary);
+}
+
+.markdownWrapper ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.375rem 0;
+}
+
+.markdownWrapper li {
+  position: relative;
+  padding-left: 1.25rem;
+  margin: 0.25rem 0;
+}
+
+.markdownWrapper li::before {
+  content: "▹";
+  position: absolute;
+  left: 0;
+  top: 1px;
+  color: var(--color-accent);
+}
+
+.cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: var(--color-primary);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: typing-dot 1s ease-in-out infinite;
+  border-radius: 1px;
+}

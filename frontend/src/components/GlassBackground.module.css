@@ -1,0 +1,174 @@
+.container {
+  position: absolute;
+  inset: 0;
+  background: var(--color-bg);
+  z-index: -1;
+  overflow: hidden;
+  perspective: 2000px;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, transparent 0%, var(--color-bg) 90%);
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.glassContainer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+
+/* ── 3D Shape Base ── */
+.shape1, .shape2, .shape3, .shape4 {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.03);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    inset 0 0 20px rgba(255, 255, 255, 0.05),
+    0 0 40px rgba(79, 142, 247, 0.1);
+}
+
+/* Prismatic Edges Simulation */
+.shape1::after, .shape2::after, .shape3::after, .shape4::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(135deg, 
+    transparent 0%, 
+    rgba(79, 142, 247, 0.6) 20%, 
+    rgba(34, 211, 165, 0.6) 40%, 
+    transparent 60%, 
+    rgba(139, 92, 246, 0.4) 80%, 
+    transparent 100%);
+  opacity: 0.3;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out;
+  mask-composite: exclude;
+  padding: 2px;
+  pointer-events: none;
+}
+
+.shape1 {
+  width: 300px;
+  height: 300px;
+  top: 10%;
+  left: 5%;
+  border-radius: 40px;
+  transform: rotateX(20deg) rotateY(30deg) translateZ(100px);
+  animation: float1 12s ease-in-out infinite;
+}
+
+.shape2 {
+  width: 250px;
+  height: 150px;
+  bottom: 20%;
+  right: 10%;
+  border-radius: 60px;
+  transform: rotateX(-15deg) rotateY(-40deg) translateZ(50px);
+  animation: float2 15s ease-in-out infinite;
+}
+
+.shape3 {
+  width: 180px;
+  height: 180px;
+  top: 50%;
+  left: 60%;
+  border-radius: 50%;
+  transform: rotateX(10deg) rotateY(10deg) translateZ(-150px);
+  animation: float3 18s ease-in-out infinite;
+}
+
+.shape4 {
+  width: 400px;
+  height: 200px;
+  top: -5%;
+  right: 20%;
+  border-radius: 100px;
+  background: rgba(255, 255, 255, 0.01);
+  animation: float4 20s ease-in-out infinite;
+}
+
+/* ── Glowing Orbs ── */
+.orb1, .orb2 {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.3;
+  z-index: -1;
+}
+
+.orb1 {
+  width: 500px;
+  height: 500px;
+  background: var(--color-primary);
+  top: -10%;
+  left: -10%;
+  animation: pulse-glow 15s ease-in-out infinite;
+}
+
+.orb2 {
+  width: 400px;
+  height: 400px;
+  background: var(--color-accent);
+  bottom: -5%;
+  right: -5%;
+  animation: pulse-glow 12s ease-in-out infinite reverse;
+}
+
+/* ── Animations ── */
+@keyframes float1 {
+  0%, 100% { transform: rotateX(20deg) rotateY(30deg) translateZ(100px) translateY(0); }
+  50% { transform: rotateX(25deg) rotateY(35deg) translateZ(120px) translateY(-30px); }
+}
+
+@keyframes float2 {
+  0%, 100% { transform: rotateX(-15deg) rotateY(-40deg) translateZ(50px) translateX(0); }
+  50% { transform: rotateX(-10deg) rotateY(-35deg) translateZ(70px) translateX(-40px); }
+}
+
+@keyframes float3 {
+  0%, 100% { transform: rotateX(10deg) rotateY(10deg) translateZ(-150px) scale(1); }
+  50% { transform: rotateX(15deg) rotateY(5deg) translateZ(-130px) scale(1.1); }
+}
+
+@keyframes float4 {
+  0%, 100% { transform: rotateX(5deg) rotateY(-10deg) translateY(0); }
+  50% { transform: rotateX(10deg) rotateY(-5deg) translateY(40px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.2; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.2); }
+}
+
+/* Theme specific adjustments */
+:global([data-theme="light"]) .shape1,
+:global([data-theme="light"]) .shape2,
+:global([data-theme="light"]) .shape3,
+:global([data-theme="light"]) .shape4 {
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.05);
+}
+
+:global([data-theme="light"]) .orb1,
+:global([data-theme="light"]) .orb2 {
+  opacity: 0.15;
+}

@@ -1,0 +1,177 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.inputGrid {
+  display: flex;
+  gap: 0.625rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.inputWrapper:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: none;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 0.875rem;
+  color: var(--text-muted);
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.input, .textarea {
+  width: 100%;
+  padding: 0.75rem 0.875rem 0.75rem 2.5rem;
+  background: transparent;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  resize: none;
+}
+
+.input:focus, .input:active, .input:focus-visible,
+.textarea:focus, .textarea:active, .textarea:focus-visible {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+.textarea {
+  min-height: 44px;
+  max-height: 120px;
+  line-height: 1.5;
+  overflow-y: auto;
+}
+
+/* Suggestions dropdown */
+.suggestions {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  z-index: 50;
+  margin-bottom: 4px;
+}
+
+.suggestionItem {
+  display: block;
+  width: 100%;
+  padding: 0.625rem 1rem;
+  background: none;
+  border: none;
+  text-align: left;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.suggestionItem:hover {
+  background: var(--color-surface);
+  color: var(--text-primary);
+}
+
+/* Optional toggle */
+.optionalToggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.optionalToggle:hover {
+  color: var(--text-primary);
+  border-color: var(--color-border-strong);
+}
+
+.optionalFields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.625rem;
+  overflow: hidden;
+}
+
+/* Query + Submit row */
+.queryRow {
+  display: flex;
+  gap: 0.625rem;
+  align-items: flex-end;
+}
+
+.queryWrapper {
+  flex: 1;
+  align-items: flex-start;
+  padding-top: 2px;
+}
+
+.queryWrapper .inputIcon {
+  top: 0.875rem;
+}
+
+/* Submit button */
+.submitBtn {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg);
+  background: var(--gradient-primary);
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 16px rgba(79, 142, 247, 0.35);
+  transition: all var(--transition-base);
+}
+
+.submitBtn:hover:not(:disabled) {
+  box-shadow: 0 8px 24px rgba(79, 142, 247, 0.5);
+  transform: translateY(-1px);
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.spinner {
+  animation: spin-slow 1s linear infinite;
+}

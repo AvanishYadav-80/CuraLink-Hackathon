@@ -1,0 +1,11 @@
+{
+  "name": "curalink",
+  "version": "1.0.0",
+  "description": "CuraLink — AI Medical Research Assistant",
+  "scripts": {
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "start:ai": "cd ai-engine && python -m uvicorn main:app --reload --port 8000"
+  }
+}
