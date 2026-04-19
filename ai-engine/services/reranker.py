@@ -151,14 +151,14 @@ def rerank_publications(
     if not publications:
         return []
     
-    # Remove publications without meaningful content
+    # Remove only the most broken publications
     valid_pubs = [
         p for p in publications
-        if p.get("title") and p["title"] not in ["Unknown Title", ""]
-        and (p.get("abstract", "No abstract") != "No abstract available." or p.get("doi"))
+        if p.get("title") and p["title"] not in ["Unknown Title", "", "None"]
     ]
     
     if not valid_pubs:
+        # If everything failed, just return the raw results instead of empty
         return publications[:top_k]
     
     # Compute TF-IDF scores
