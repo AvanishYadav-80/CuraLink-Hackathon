@@ -53,8 +53,8 @@ export function useChat() {
         {
           onStatus: (msg) => store.updateStreamStatus(msg),
           onToken: (token) => store.appendStreamToken(token),
-          onResearchData: (data) => {
-            store.setResearchData(data.publications, data.trials);
+          onResearchData: (publications, trials) => {
+            store.setResearchData(publications, trials);
           },
           onStats: (stats) => store.setStats(stats),
           onDone: () => {

@@ -62,8 +62,8 @@ const useChatStore = create((set, get) => ({
         },
       ],
       currentStreamContent: "",
-      publications: publications || state.publications,
-      trials: trials || state.trials,
+      publications: publications && publications.length > 0 ? publications : state.publications,
+      trials: trials && trials.length > 0 ? trials : state.trials,
       stats: stats || state.stats,
     })),
 
