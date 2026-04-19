@@ -64,13 +64,13 @@ async def research_endpoint(req: QueryRequest):
         primary_query = expanded_queries[0]
 
         pubmed_task = asyncio.create_task(
-            fetch_pubmed_publications(primary_query, expanded_queries, max_results=100)
+            fetch_pubmed_publications(primary_query, expanded_queries, max_results=30)
         )
         openalex_task = asyncio.create_task(
-            fetch_openalex_publications(primary_query, expanded_queries, max_results=200)
+            fetch_openalex_publications(primary_query, expanded_queries, max_results=40)
         )
         trials_task = asyncio.create_task(
-            fetch_clinical_trials(req.disease, req.location, max_results=50)
+            fetch_clinical_trials(req.disease, req.location, max_results=20)
         )
 
         pubmed_results, openalex_results, trial_results = await asyncio.gather(
@@ -119,13 +119,13 @@ async def chat_stream(req: QueryRequest):
             yield f"data: {json.dumps({'type': 'status', 'message': 'Fetching from PubMed, OpenAlex, ClinicalTrials.gov...'})}\n\n"
 
             pubmed_task = asyncio.create_task(
-                fetch_pubmed_publications(primary_query, expanded_queries, max_results=100)
+                fetch_pubmed_publications(primary_query, expanded_queries, max_results=30)
             )
             openalex_task = asyncio.create_task(
-                fetch_openalex_publications(primary_query, expanded_queries, max_results=200)
+                fetch_openalex_publications(primary_query, expanded_queries, max_results=40)
             )
             trials_task = asyncio.create_task(
-                fetch_clinical_trials(req.disease, req.location, max_results=50)
+                fetch_clinical_trials(req.disease, req.location, max_results=20)
             )
 
             pubmed_results, openalex_results, trial_results = await asyncio.gather(
