@@ -11,7 +11,7 @@ from groq import AsyncGroq
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2:3b")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.2-3b-preview")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
 
 def build_system_prompt() -> str:
