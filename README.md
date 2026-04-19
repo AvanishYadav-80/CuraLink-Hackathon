@@ -56,10 +56,27 @@ User Query → Query Expansion (5 variants)
          → MongoDB conversation persistence
 ```
 
-## 📡 Deployment
-- **Backend**: Render.com (set `AI_ENGINE_URL` to Python service URL)
-- **Frontend**: Vercel (set `VITE_API_URL` to Render backend URL)
-- **AI Engine**: Render.com (or any Python host)
+## 📡 Deployment (Easy Mode)
+
+### 1. AI Engine (Render.com)
+- **Root Directory**: `ai-engine`
+- **Build Command**: `pip install -r requirements.txt`
+- **Start Command**: `python -m uvicorn main:app --host 0.0.0.0 --port $PORT`
+- **Env Vars**: Set `GROQ_API_KEY` (from console.groq.com) to bypass local Ollama 
+- **Wait**: Use Render's free tier (Python service)
+
+### 2. Backend (Render.com)
+- **Root Directory**: `backend`
+- **Build Command**: `npm install`
+- **Start Command**: `npm start`
+- **Env Vars**: 
+  - `AI_ENGINE_URL`: (Your AI Engine URL from step 1)
+  - `MONGODB_URI`: (Your Atlas string)
+
+### 3. Frontend (Vercel)
+- **Root Directory**: `frontend`
+- **Env Vars**: 
+  - `VITE_API_URL`: `https://your-backend.onrender.com/api`
 
 ## 🔑 Environment Variables
 

@@ -6,9 +6,12 @@ Uses a carefully engineered system prompt to produce non-hallucinated, source-ba
 import os
 from typing import Any, AsyncGenerator, Dict, List
 import ollama
+from groq import AsyncGroq
 
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2:3b")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.2-3b-preview")
 
 
 def build_system_prompt() -> str:
@@ -164,6 +167,23 @@ async def stream_llm_response(
     ]
     
     try:
+        # 1. Try Groq first if API key is provided (Recommended for Hosted Deployment)
+        if GROQ_API_KEY:
+            client = AsyncGroq(api_key=GROQ_API_KEY)
+            stream = await client.chat.completions.create(
+                model=GROQ_MODEL,
+                messages=messages,
+                stream=True,
+                temperature=0.3,
+                max_tokens=2048,
+                top_p=0.9,
+            )
+            async for chunk in stream:
+                if chunk.choices[0].delta.content:
+                    yield chunk.choices[0].delta.content
+            return
+
+        # 2. Fallback to Local Ollama
         client = ollama.AsyncClient(host=OLLAMA_HOST)
         
         stream = await client.chat(
@@ -171,11 +191,11 @@ async def stream_llm_response(
             messages=messages,
             stream=True,
             options={
-                "temperature": 0.3,      # Low temperature for factual accuracy
+                "temperature": 0.3,
                 "top_p": 0.9,
-                "num_ctx": 4096,         # Reduced context for faster Time-To-First-Token
-                "num_predict": 1024,     # Faster overall generation
-                "repeat_penalty": 1.1,  # Reduce repetition
+                "num_ctx": 4096,
+                "num_predict": 1024,
+                "repeat_penalty": 1.1,
             },
         )
         
@@ -184,11 +204,11 @@ async def stream_llm_response(
             if content:
                 yield content
                 
-    except ConnectionRefusedError:
-        yield "\n\n**⚠️ AI Engine Error**: Cannot connect to Ollama. Please ensure Ollama is running (`ollama serve`) and the model is downloaded (`ollama pull llama3.2:3b`).\n\n"
     except Exception as e:
         error_msg = str(e)
-        if "model" in error_msg.lower() and "not found" in error_msg.lower():
-            yield f"\n\n**⚠️ Model Error**: Model '{OLLAMA_MODEL}' not found. Run `ollama pull {OLLAMA_MODEL}` to download it.\n\n"
+        if "ConnectionRefusedError" in error_msg or "11434" in error_msg:
+            yield "\n\n**⚠️ AI Engine Error**: Cannot connect to Ollama. For hosting, please provide a `GROQ_API_KEY`. For local, ensure Ollama is running.\n\n"
+        elif "model" in error_msg.lower() and "not found" in error_msg.lower():
+            yield f"\n\n**⚠️ Model Error**: Model not found. Run `ollama pull {OLLAMA_MODEL}` or use Groq.\n\n"
         else:
             yield f"\n\n**⚠️ AI Error**: {error_msg}\n\n"
