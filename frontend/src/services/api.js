@@ -82,7 +82,7 @@ export const streamChat = async (payload, callbacks = {}) => {
               onToken?.(event.content);
               break;
             case "research_data":
-              onResearchData?.(event);
+              onResearchData?.(event.publications, event.trials);
               break;
             case "stats":
               onStats?.(event.data);

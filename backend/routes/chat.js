@@ -117,14 +117,20 @@ router.post("/query", async (req, res) => {
       timeout: 120000, // 2 min timeout for LLM
     });
 
-    // Pipe AI engine SSE events to client
+    // Pipe AI engine SSE events to client with buffering to handle fragmentation
+    let buffer = "";
     aiResponse.data.on("data", (chunk) => {
-      const text = chunk.toString();
-      const lines = text.split("\n").filter((l) => l.startsWith("data: "));
+      buffer += chunk.toString();
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || ""; // Keep the last (potentially partial) line in buffer
 
       for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        
         try {
           const jsonStr = line.replace("data: ", "").trim();
+          if (!jsonStr) continue;
+          
           const event = JSON.parse(jsonStr);
 
           // Forward to client
