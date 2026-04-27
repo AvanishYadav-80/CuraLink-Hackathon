@@ -3,6 +3,7 @@ LLM Service — Ollama integration for streaming, structured medical research re
 Uses a carefully engineered system prompt to produce non-hallucinated, source-backed answers.
 """
 
+import asyncio
 import os
 from typing import Any, AsyncGenerator, Dict, List
 import ollama
@@ -12,6 +13,14 @@ OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2:3b")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+
+# Fallback model chain — ordered from fastest/cheapest to most capable
+# These are all free on Groq, with higher rate limits for smaller models
+GROQ_FALLBACK_MODELS = [
+    "llama-3.1-8b-instant",   # Fastest, highest rate limit
+    "llama3-8b-8192",          # Alternative 8b
+    "mixtral-8x7b-32768",      # Good balance
+]
 
 
 def build_system_prompt() -> str:
@@ -137,6 +146,25 @@ Based ONLY on the above publications and clinical trials, provide a comprehensiv
     return prompt
 
 
+async def _try_groq_stream(
+    client: AsyncGroq,
+    model: str,
+    messages: list,
+) -> AsyncGenerator[str, None]:
+    """Attempt to stream from a specific Groq model. Raises on error."""
+    stream = await client.chat.completions.create(
+        model=model,
+        messages=messages,
+        stream=True,
+        temperature=0.3,
+        max_tokens=1500,  # Reduced to stay within free-tier token limits
+        top_p=0.9,
+    )
+    async for chunk in stream:
+        if chunk.choices[0].delta.content:
+            yield chunk.choices[0].delta.content
+
+
 async def stream_llm_response(
     disease: str,
     query: str,
@@ -147,8 +175,9 @@ async def stream_llm_response(
     conversation_history: List[Dict],
 ) -> AsyncGenerator[str, None]:
     """
-    Stream LLM response tokens via Ollama.
-    Uses the ollama Python client with stream=True.
+    Stream LLM response tokens.
+    Priority: Groq (primary model) → Groq fallback models → Local Ollama.
+    Handles 429 rate limit errors with exponential backoff + model fallback.
     """
     system_prompt = build_system_prompt()
     user_prompt = build_user_prompt(
@@ -160,32 +189,53 @@ async def stream_llm_response(
         trials=trials,
         conversation_history=conversation_history,
     )
-    
+
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_prompt},
     ]
-    
-    try:
-        # 1. Try Groq first if API key is provided (Recommended for Hosted Deployment)
-        if GROQ_API_KEY:
-            client = AsyncGroq(api_key=GROQ_API_KEY)
-            stream = await client.chat.completions.create(
-                model=GROQ_MODEL,
-                messages=messages,
-                stream=True,
-                temperature=0.3,
-                max_tokens=2048,
-                top_p=0.9,
-            )
-            async for chunk in stream:
-                if chunk.choices[0].delta.content:
-                    yield chunk.choices[0].delta.content
-            return
 
-        # 2. Fallback to Local Ollama
+    # --- Groq path ---
+    if GROQ_API_KEY:
+        client = AsyncGroq(api_key=GROQ_API_KEY)
+        models_to_try = [GROQ_MODEL] + GROQ_FALLBACK_MODELS
+
+        for attempt, model in enumerate(models_to_try):
+            try:
+                # Exponential backoff between retries (0s, 5s, 10s, 20s...)
+                if attempt > 0:
+                    wait_secs = min(5 * (2 ** (attempt - 1)), 30)
+                    yield f"\n\n*⏳ Rate limited on `{models_to_try[attempt-1]}`. Switching to `{model}` (waiting {wait_secs}s)...*\n\n"
+                    await asyncio.sleep(wait_secs)
+
+                got_any = False
+                async for token in _try_groq_stream(client, model, messages):
+                    got_any = True
+                    yield token
+
+                if got_any:
+                    return  # Success — stop trying
+
+            except Exception as e:
+                err = str(e)
+                is_rate_limit = "429" in err or "rate_limit" in err.lower() or "too many" in err.lower()
+                is_model_error = "model" in err.lower() and ("not found" in err.lower() or "does not exist" in err.lower())
+
+                if is_rate_limit or is_model_error:
+                    # Try next model in the fallback chain
+                    continue
+                else:
+                    # Non-rate-limit error — bail out
+                    yield f"\n\n**⚠️ Groq Error**: {err}\n\n"
+                    return
+
+        # All Groq models exhausted
+        yield "\n\n**⚠️ Rate Limit Reached**: All Groq models are currently rate limited. Please wait a minute and try again, or use a local Ollama instance.\n\n"
+        return
+
+    # --- Local Ollama fallback ---
+    try:
         client = ollama.AsyncClient(host=OLLAMA_HOST)
-        
         stream = await client.chat(
             model=OLLAMA_MODEL,
             messages=messages,
@@ -198,12 +248,11 @@ async def stream_llm_response(
                 "repeat_penalty": 1.1,
             },
         )
-        
         async for chunk in stream:
             content = chunk["message"]["content"]
             if content:
                 yield content
-                
+
     except Exception as e:
         error_msg = str(e)
         if "ConnectionRefusedError" in error_msg or "11434" in error_msg:
